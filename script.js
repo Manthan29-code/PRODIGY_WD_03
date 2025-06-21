@@ -5,7 +5,24 @@ let currentPlayer;
 let currentMode;
 let isGameStarted=false;
 let gameBoard = [[],[],[]];
-
+const checkWinner=(gameBoard)=>{
+    for(let i=0;i<3;i++){
+        if(gameBoard[i][0] == currentPlayer && gameBoard[i][1] == currentPlayer && gameBoard[i][2] == currentPlayer){
+            return currentPlayer;
+        }
+        if(gameBoard[0][i] == currentPlayer && gameBoard[1][i] == currentPlayer && gameBoard[2][i] == currentPlayer){
+            return currentPlayer;
+        }  
+    }
+    if(gameBoard[0][0] == currentPlayer && gameBoard[1][1] == currentPlayer && gameBoard[2][2] == currentPlayer){
+        return currentPlayer;
+    }
+    if(gameBoard[0][2] == currentPlayer && gameBoard[1][1] == currentPlayer && gameBoard[2][0] == currentPlayer){
+        return currentPlayer;
+    }
+    return undefined;
+    
+}
 button1.addEventListener('click', () => {
     if(button1.innerText == "AI"){
         currentMode="AI";
@@ -27,17 +44,18 @@ function resetGame(){
     currentPlayer=undefined;
     currentMode=undefined;
     gameBoard = [[],[],[]];
-    // let cells = document.querySelectorAll('.cell');
-    // cells.forEach(cell => {
-    //     cell.textContent = '';
-    // });
     let cells = board.children;
     for(let i=0;i<cells.length;i++){
         cells[i].textContent = '';
     }
     
 }
-
+function resetGameAfterWinner(){
+    resetGame();
+    button1.style.display = "block";
+    button1.innerText = "AI";
+    button2.innerText = "Manual";
+}
 button2.addEventListener('click', () => {
     if(button2.innerText == "Manual"){
         currentMode="Manual";
@@ -74,6 +92,14 @@ board.addEventListener('click', (e) => {
     if(gameBoard[row][col] == undefined ){
      gameBoard[row][col] = currentPlayer;
      cellelement.innerText = currentPlayer;
+     let winner = checkWinner(gameBoard);
+     console.log(winner);
+     if(winner== "X" || winner== "O"){
+         console.log(`Player ${winner} Wins`);
+        setTimeout(() => {
+            resetGameAfterWinner();
+        }, 500);
+     }
      currentPlayer = currentPlayer == "X" ? "O" : "X";
     }
     else{
