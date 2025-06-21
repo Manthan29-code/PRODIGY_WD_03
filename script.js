@@ -23,6 +23,8 @@ const checkWinner=(gameBoard)=>{
     return undefined;
     
 }
+
+
 button1.addEventListener('click', () => {
     if(button1.innerText == "AI"){
         currentMode="AI";
@@ -50,12 +52,14 @@ function resetGame(){
     }
     
 }
+
 function resetGameAfterWinner(){
     resetGame();
     button1.style.display = "block";
     button1.innerText = "AI";
     button2.innerText = "Manual";
 }
+
 button2.addEventListener('click', () => {
     if(button2.innerText == "Manual"){
         currentMode="Manual";
@@ -73,6 +77,89 @@ button2.addEventListener('click', () => {
     }
 });
 
+function getBestMoveForO(board) {
+    const scoreMap = { X: -1, O: 1, tie: 0 };
+
+    function checkWinner(b) {
+        // Flatten board for simplicity
+        const flat = b.flat();
+
+        const wins = [
+            [0, 1, 2], [3, 4, 5], [6, 7, 8], // rows
+            [0, 3, 6], [1, 4, 7], [2, 5, 8], // columns
+            [0, 4, 8], [2, 4, 6]             // diagonals
+        ];
+
+        for (let combo of wins) {
+            const [a, b, c] = combo;
+            if (
+                flat[a] &&
+                flat[a] === flat[b] &&
+                flat[a] === flat[c]
+            ) {
+                return flat[a];
+            }
+        }
+
+        if (flat.every(cell => cell !== undefined)) return "tie";
+        return null;
+    }
+
+    function minimax(b, isMaximizing) {
+        const result = checkWinner(b);
+        if (result !== null) return scoreMap[result];
+
+        if (isMaximizing) {
+            let bestScore = -Infinity;
+            for (let r = 0; r < 3; r++) {
+                for (let c = 0; c < 3; c++) {
+                    if (!b[r][c]) {
+                        b[r][c] = "O";
+                        let score = minimax(b, false);
+                        b[r][c] = undefined;
+                        bestScore = Math.max(score, bestScore);
+                    }
+                }
+            }
+            return bestScore;
+        } else {
+            let bestScore = Infinity;
+            for (let r = 0; r < 3; r++) {
+                for (let c = 0; c < 3; c++) {
+                    if (!b[r][c]) {
+                        b[r][c] = "X";
+                        let score = minimax(b, true);
+                        b[r][c] = undefined;
+                        bestScore = Math.min(score, bestScore);
+                    }
+                }
+            }
+            return bestScore;
+        }
+    }
+
+    let bestScore = -Infinity;
+    let move = { row: -1, col: -1 };
+
+    for (let r = 0; r < 3; r++) {
+        for (let c = 0; c < 3; c++) {
+            if (!board[r][c]) {
+                board[r][c] = "O";
+                let score = minimax(board, false);
+                board[r][c] = undefined;
+
+                if (score > bestScore) {
+                    bestScore = score;
+                    move = { row: r, col: c };
+                }
+            }
+        }
+    }
+
+    return move;
+}
+
+
 board.addEventListener('click', (e) => {  
     if(!isGameStarted){
         alert("Please Start the Game");
@@ -83,7 +170,7 @@ board.addEventListener('click', (e) => {
         return;
     }  
     console.log(e.target);
-    const cellelement = e.target;
+    let cellelement = e.target;
     let cell = e.target.id;
     console.log(cell); 
     cell=cell.split("_");
@@ -105,5 +192,29 @@ board.addEventListener('click', (e) => {
     else{
         alert("Already Filled");
     }
+    if (currentMode == "AI" && currentPlayer == "O") {
+        (async () => {
+            await new Promise(resolve => setTimeout(resolve, 1000)); // 1s delay
+    
+            const { row, col } = getBestMoveForO(gameBoard);
+            let position = row + "_" + col;
+            cellelement = document.getElementById(position);
+            cellelement.innerText = currentPlayer;
+            console.log("Ai move:-", row, col);
+            gameBoard[row][col] = currentPlayer;
+    
+            winner = checkWinner(gameBoard);
+            console.log(winner);
+            if (winner == "X" || winner == "O") {
+                console.log(`Player ${winner} Wins`);
+                setTimeout(() => {
+                    resetGameAfterWinner();
+                }, 500);
+            }
+    
+            currentPlayer = currentPlayer == "X" ? "O" : "X";
+        })();
+    }
+    
     console.log(row, col);   
-})
+});
