@@ -42,6 +42,24 @@ button1.addEventListener('click', () => {
     }   
 });
 
+button2.addEventListener('click', () => {
+    if(button2.innerText == "Manual"){
+        currentMode="Manual";
+        button1.style.display = "none";
+        button1.innerText = "Start";
+        button2.style.display = "block";
+        button2.innerText = "Reset";
+        currentPlayer="X";
+        alert("Player X Turn");
+    }else{
+        button1.style.display = "block";
+        button1.innerText = "AI";
+        button2.innerText = "Manual";
+        resetGame();
+    }
+});
+
+
 function resetGame(){
     currentPlayer=undefined;
     currentMode=undefined;
@@ -60,28 +78,33 @@ function resetGameAfterWinner(){
     button2.innerText = "Manual";
 }
 
-button2.addEventListener('click', () => {
-    if(button2.innerText == "Manual"){
-        currentMode="Manual";
-        button1.style.display = "none";
-        button1.innerText = "Start";
-        button2.style.display = "block";
-        button2.innerText = "Reset";
-        currentPlayer="X";
-        alert("Player X Turn");
-    }else{
-        button1.style.display = "block";
-        button1.innerText = "AI";
-        button2.innerText = "Manual";
-        resetGame();
-    }
-});
+function resetGameAfterTie(){
+    console.log("Tie");  
+    resetGame();
+    button1.style.display = "block";
+    button1.innerText = "AI";
+    button2.innerText = "Manual";
+}
 
-function getBestMoveForO(board) {
+
+function isBoardFull(board) {
+    let count=0;
+    for(let i=0;i<board.length;i++){
+        for(let j=0;j<board[i].length;j++){
+            if(board[i][j] == "X" || board[i][j] == "O"){
+                count++;
+            }
+        }
+    }
+    return count==9;
+}
+
+
+function getBestMoveForO(Board) {
     const scoreMap = { X: -1, O: 1, tie: 0 };
 
     function checkWinner(b) {
-        // Flatten board for simplicity
+        // Flatten Board for simplicity
         const flat = b.flat();
 
         const wins = [
@@ -143,10 +166,10 @@ function getBestMoveForO(board) {
 
     for (let r = 0; r < 3; r++) {
         for (let c = 0; c < 3; c++) {
-            if (!board[r][c]) {
-                board[r][c] = "O";
-                let score = minimax(board, false);
-                board[r][c] = undefined;
+            if (!Board[r][c]) {
+                Board[r][c] = "O";
+                let score = minimax(Board, false);
+                Board[r][c] = undefined;
 
                 if (score > bestScore) {
                     bestScore = score;
@@ -165,10 +188,13 @@ board.addEventListener('click', (e) => {
         alert("Please Start the Game");
         return;
     }
-    if(currentMode== undefined){
+    if(currentMode== undefined ){
         alert("Please Select the Mode");
         return;
-    }  
+    } 
+    if(currentPlayer== undefined){
+        return;
+    } 
     console.log(e.target);
     let cellelement = e.target;
     let cell = e.target.id;
@@ -215,6 +241,11 @@ board.addEventListener('click', (e) => {
             currentPlayer = currentPlayer == "X" ? "O" : "X";
         })();
     }
-    
+    if(isBoardFull(gameBoard)){  
+        currentPlayer=undefined;     
+        setTimeout(() => {
+            resetGameAfterTie();
+        }, 500);
+    }
     console.log(row, col);   
 });
