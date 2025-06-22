@@ -71,6 +71,8 @@ function resetGame(){
     
 }
 
+
+
 function resetGameAfterWinner(){
     resetGame();
     button1.style.display = "block";
@@ -81,6 +83,7 @@ function resetGameAfterWinner(){
 function resetGameAfterTie(){
     console.log("Tie");  
     resetGame();
+
     button1.style.display = "block";
     button1.innerText = "AI";
     button2.innerText = "Manual";
@@ -183,69 +186,97 @@ function getBestMoveForO(Board) {
 }
 
 
-board.addEventListener('click', (e) => {  
-    if(!isGameStarted){
+board.addEventListener('click', (e) => {
+    if (!isGameStarted) {
         alert("Please Start the Game");
         return;
     }
-    if(currentMode== undefined ){
+    if (currentMode === undefined) {
         alert("Please Select the Mode");
         return;
-    } 
-    if(currentPlayer== undefined){
+    }
+    if (currentPlayer === undefined) {
         return;
-    } 
-    console.log(e.target);
+    }
+
     let cellelement = e.target;
     let cell = e.target.id;
-    console.log(cell); 
-    cell=cell.split("_");
-    const row = parseInt(cell[0]);
-    const col = parseInt(cell[1]);
-    if(gameBoard[row][col] == undefined ){
-     gameBoard[row][col] = currentPlayer;
-     cellelement.innerText = currentPlayer;
-     let winner = checkWinner(gameBoard);
-     console.log(winner);
-     if(winner== "X" || winner== "O"){
-         console.log(`Player ${winner} Wins`);
+    if (!cell.includes("_")) return;
+
+    const [rowStr, colStr] = cell.split("_");
+    const row = parseInt(rowStr);
+    const col = parseInt(colStr);
+
+    if (gameBoard[row][col] !== undefined) {
+        alert("Already Filled");
+        return;
+    }
+
+    // Player move
+    gameBoard[row][col] = currentPlayer;
+    cellelement.innerText = currentPlayer;
+
+    let winner = checkWinner(gameBoard);
+    console.log("Player move, winner check:", winner);
+
+    // Check if player wins
+    if (winner === "X" || winner === "O") {
+        console.log(`Player ${winner} Wins`);
         setTimeout(() => {
             resetGameAfterWinner();
         }, 500);
-     }
-     currentPlayer = currentPlayer == "X" ? "O" : "X";
+        return;
     }
-    else{
-        alert("Already Filled");
+
+    // Check tie
+    if (isBoardFull(gameBoard)) {
+        currentPlayer = undefined;
+        setTimeout(() => {
+            resetGameAfterTie();
+        }, 500);
+        return;
     }
-    if (currentMode == "AI" && currentPlayer == "O"  && !isBoardFull(gameBoard) && checkWinner(gameBoard) === undefined) {
+
+    // Switch to AI
+    currentPlayer = currentPlayer === "X" ? "O" : "X";
+
+    // Trigger AI Move (only if still valid to play)
+    if (currentMode === "AI" && currentPlayer === "O") {
         (async () => {
-            await new Promise(resolve => setTimeout(resolve, 1000)); // 1s delay
-    
+            await new Promise(resolve => setTimeout(resolve, 1000)); // Delay AI move
+
             const { row, col } = getBestMoveForO(gameBoard);
             let position = row + "_" + col;
             cellelement = document.getElementById(position);
             cellelement.innerText = currentPlayer;
-            console.log("Ai move:-", row, col);
+            console.log("AI move:", row, col);
             gameBoard[row][col] = currentPlayer;
-    
-            winner = checkWinner(gameBoard);
-            console.log(winner);
-            if (winner == "X" || winner == "O") {
+
+            let winner = checkWinner(gameBoard);
+            console.log("AI move, winner check:", winner);
+
+            // Check if AI wins
+            if (winner === "X" || winner === "O") {
                 console.log(`Player ${winner} Wins`);
                 setTimeout(() => {
                     resetGameAfterWinner();
                 }, 500);
+                return;
             }
-    
-            currentPlayer = currentPlayer == "X" ? "O" : "X";
+
+            // Check tie after AI move
+            if (isBoardFull(gameBoard)) {
+                currentPlayer = undefined;
+                setTimeout(() => {
+                    resetGameAfterTie();
+                }, 500);
+                return;
+            }
+
+            // Switch back to human
+            currentPlayer = "X";
         })();
     }
-    if(isBoardFull(gameBoard)){  
-        currentPlayer=undefined;     
-        setTimeout(() => {
-            resetGameAfterTie();
-        }, 500);
-    }
-    console.log(row, col);   
+
+    console.log("Clicked cell:", row, col);
 });
