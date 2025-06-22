@@ -218,7 +218,7 @@ board.addEventListener('click', (e) => {
     else{
         alert("Already Filled");
     }
-    if (currentMode == "AI" && currentPlayer == "O") {
+    if (currentMode == "AI" && currentPlayer == "O"  && !isBoardFull(gameBoard) && checkWinner(gameBoard) === undefined) {
         (async () => {
             await new Promise(resolve => setTimeout(resolve, 1000)); // 1s delay
     
