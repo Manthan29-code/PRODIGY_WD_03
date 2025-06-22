@@ -33,7 +33,6 @@ button1.addEventListener('click', () => {
         button2.style.display = "block";
         button2.innerText = "Reset";
         currentPlayer="X";
-        alert("Player X Turn");
     }else{
         isGameStarted=true;
         button1.innerText = "AI";
@@ -50,7 +49,6 @@ button2.addEventListener('click', () => {
         button2.style.display = "block";
         button2.innerText = "Reset";
         currentPlayer="X";
-        alert("Player X Turn");
     }else{
         button1.style.display = "block";
         button1.innerText = "AI";
@@ -72,7 +70,6 @@ function resetGame(){
 }
 
 
-
 function resetGameAfterWinner(){
     resetGame();
     button1.style.display = "block";
@@ -83,7 +80,6 @@ function resetGameAfterWinner(){
 function resetGameAfterTie(){
     console.log("Tie");  
     resetGame();
-
     button1.style.display = "block";
     button1.innerText = "AI";
     button2.innerText = "Manual";
@@ -102,6 +98,25 @@ function isBoardFull(board) {
     return count==9;
 }
 
+function showPopupMessage(message) {
+    const popup = document.getElementById('popupMessage');
+    const text = document.getElementById('popupText');
+    text.innerText = message;
+    popup.style.display = 'block';
+}
+
+function hidePopupMessage() {
+    const popup = document.getElementById('popupMessage');
+    popup.style.display = 'none';
+}
+
+document.getElementById('popupButton').addEventListener('click', () => {
+    hidePopupMessage();
+    resetGame();
+    button1.style.display = "block";
+    button1.innerText = "AI";
+    button2.innerText = "Manual";
+});
 
 function getBestMoveForO(Board) {
     const scoreMap = { X: -1, O: 1, tie: 0 };
@@ -185,7 +200,7 @@ function getBestMoveForO(Board) {
     return move;
 }
 
-
+hidePopupMessage(); // Hide any popup when user clicks to make a move
 board.addEventListener('click', (e) => {
     if (!isGameStarted) {
         alert("Please Start the Game");
@@ -221,7 +236,7 @@ board.addEventListener('click', (e) => {
 
     // Check if player wins
     if (winner === "X" || winner === "O") {
-        console.log(`Player ${winner} Wins`);
+        showPopupMessage(`Winner: Player ${winner}`);
         setTimeout(() => {
             resetGameAfterWinner();
         }, 500);
@@ -231,6 +246,7 @@ board.addEventListener('click', (e) => {
     // Check tie
     if (isBoardFull(gameBoard)) {
         currentPlayer = undefined;
+        showPopupMessage(`It's a Tie`);
         setTimeout(() => {
             resetGameAfterTie();
         }, 500);
@@ -258,6 +274,7 @@ board.addEventListener('click', (e) => {
             // Check if AI wins
             if (winner === "X" || winner === "O") {
                 console.log(`Player ${winner} Wins`);
+                showPopupMessage(`Winner: Player ${winner}`);
                 setTimeout(() => {
                     resetGameAfterWinner();
                 }, 500);
